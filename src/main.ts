@@ -1,4 +1,10 @@
 import { createApp } from 'vue'
-import App from './App.vue'
+import App from '@/App.vue'
+import svgIconPlugin from '@/plugins/svgIcon'
+import '@/styles/index.scss'
+import router from './router'
+const app = createApp(App)
 
-createApp(App).mount('#app')
+app.use(svgIconPlugin)
+app.use(router)
+app.mount('#app')
