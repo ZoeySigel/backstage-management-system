@@ -1,7 +1,52 @@
 <script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Lock, User } from '@element-plus/icons-vue'
-import { reactive } from 'vue'
-let loginForm = reactive({ username: '', password: '' })
+import useUserStore from '@/store/modules/user'
+import type { LoginForm } from '@/api/user/type'
+
+const router = useRouter()
+const userStore = useUserStore()
+const loginFormRef = ref<FormInstance>()
+const loading = ref(false)
+
+const loginForm = reactive<LoginForm>({
+  username: 'admin',
+  password: '111111',
+})
+
+const loginRules: FormRules<LoginForm> = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度应为 3 到 20 位', trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度应为 6 到 20 位', trigger: 'blur' },
+  ],
+}
+
+const login = async () => {
+  const valid = await loginFormRef.value?.validate().catch(() => false)
+
+  if (!valid) {
+    return
+  }
+
+  loading.value = true
+
+  try {
+    await userStore.userLogin(loginForm)
+    ElMessage.success('登录成功')
+    await router.push('/')
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '登录失败')
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -16,19 +61,30 @@ let loginForm = reactive({ username: '', password: '' })
     </section>
 
     <section class="form-panel">
-      <el-form class="login-form" size="large">
+      <el-form
+        ref="loginFormRef"
+        class="login-form"
+        :model="loginForm"
+        :rules="loginRules"
+        size="large"
+        @keyup.enter="login"
+      >
         <div class="form-heading">
           <h2>欢迎登录</h2>
           <p>请输入账号信息进入管理后台</p>
         </div>
 
-        <el-form-item>
-          <el-input v-model="loginForm.username" placeholder="请输入用户名" :prefix-icon="User" />
+        <el-form-item prop="username">
+          <el-input
+            v-model.trim="loginForm.username"
+            placeholder="请输入用户名"
+            :prefix-icon="User"
+          />
         </el-form-item>
 
-        <el-form-item>
+        <el-form-item prop="password">
           <el-input
-            v-model="loginForm.password"
+            v-model.trim="loginForm.password"
             placeholder="请输入密码"
             type="password"
             show-password
@@ -41,7 +97,15 @@ let loginForm = reactive({ username: '', password: '' })
           <el-button link type="primary">忘记密码？</el-button>
         </div>
 
-        <el-button class="login-button" type="primary" size="large">登录</el-button>
+        <el-button
+          class="login-button"
+          type="primary"
+          size="large"
+          :loading="loading"
+          @click="login"
+        >
+          {{ loading ? '登录中...' : '登录' }}
+        </el-button>
       </el-form>
     </section>
   </main>

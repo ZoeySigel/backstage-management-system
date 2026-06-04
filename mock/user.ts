@@ -10,7 +10,7 @@ const userList = [
     avatar: Mock.Random.image('100x100', '#409eff', '#ffffff', 'Admin'),
     roles: ['admin'],
     buttons: ['cuser.detail'],
-    routes: ['home', 'acl', 'user', 'role', 'permission', 'product'],
+    routes: ['home', 'about', 'acl', 'user', 'role', 'permission', 'product'],
   },
   {
     userId: 2,
@@ -20,7 +20,7 @@ const userList = [
     avatar: Mock.Random.image('100x100', '#67c23a', '#ffffff', 'User'),
     roles: ['system'],
     buttons: ['cuser.detail'],
-    routes: ['home'],
+    routes: ['home', 'about', 'user'],
   },
 ]
 
