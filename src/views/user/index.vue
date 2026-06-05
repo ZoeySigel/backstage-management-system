@@ -17,10 +17,17 @@ const currentPage = ref(1)
 const pageSize = ref(2)
 
 const dialogVisible = ref(false)
+const submitLoading = ref(false)
 const dialogMode = ref<'edit' | 'add'>('add')
 const editingUserId = ref<number | null>(null)
 const dialogTitle = computed(() => (dialogMode.value === 'add' ? '新增用户' : '编辑用户'))
 const userFormRef = ref<FormInstance>()
+
+const selectedRows = ref<UserItem[]>([])
+const batchDeleting = ref(false)
+
+const deletingUserId = ref<number | null>(null)
+const switchingUserId = ref<number | null>(null)
 
 const userForm = reactive<UserForm>({
   username: '',
@@ -72,6 +79,7 @@ const resetUserForm = () => {
   userFormRef.value?.clearValidate()
 }
 const handleDialogClosed = () => {
+  submitLoading.value = false
   resetUserForm()
 }
 const handleSubmit = async () => {
@@ -81,33 +89,39 @@ const handleSubmit = async () => {
     return
   }
 
-  if (dialogMode.value === 'add') {
-    const result = await reqAddUser(userForm)
+  submitLoading.value = true
 
-    if (result.code !== 200) {
-      ElMessage.error(result.message || '新增用户失败')
-      return
+  try {
+    if (dialogMode.value === 'add') {
+      const result = await reqAddUser(userForm)
+
+      if (result.code !== 200) {
+        ElMessage.error(result.message || '新增用户失败')
+        return
+      }
+
+      ElMessage.success('新增用户成功')
+    } else {
+      if (editingUserId.value === null) {
+        return
+      }
+
+      const result = await reqUpdateUser(editingUserId.value, userForm)
+
+      if (result.code !== 200) {
+        ElMessage.error(result.message || '编辑用户失败')
+        return
+      }
+
+      ElMessage.success('编辑用户成功')
     }
 
-    ElMessage.success('新增用户成功')
-  } else {
-    if (editingUserId.value === null) {
-      return
-    }
-
-    const result = await reqUpdateUser(editingUserId.value, userForm)
-
-    if (result.code !== 200) {
-      ElMessage.error(result.message || '编辑用户失败')
-      return
-    }
-
-    ElMessage.success('编辑用户成功')
+    dialogVisible.value = false
+    currentPage.value = 1
+    getUserList()
+  } finally {
+    submitLoading.value = false
   }
-
-  dialogVisible.value = false
-  currentPage.value = 1
-  getUserList()
 }
 const handleSearch = () => {
   currentPage.value = 1
@@ -143,20 +157,26 @@ const handleDelete = async (row: UserItem) => {
     return
   }
 
-  const result = await reqDeleteUser(row.id)
+  deletingUserId.value = row.id
 
-  if (result.code !== 200) {
-    ElMessage.error(result.message || '删除用户失败')
-    return
+  try {
+    const result = await reqDeleteUser(row.id)
+
+    if (result.code !== 200) {
+      ElMessage.error(result.message || '删除用户失败')
+      return
+    }
+
+    ElMessage.success('删除用户成功')
+
+    if (tableData.value.length === 1 && currentPage.value > 1) {
+      currentPage.value--
+    }
+
+    getUserList()
+  } finally {
+    deletingUserId.value = null
   }
-
-  ElMessage.success('删除用户成功')
-
-  if (tableData.value.length === 1 && currentPage.value > 1) {
-    currentPage.value--
-  }
-
-  getUserList()
 }
 const handleSizeChange = (size: number) => {
   pageSize.value = size
@@ -167,6 +187,70 @@ const handleSizeChange = (size: number) => {
 const handleCurrentChange = (page: number) => {
   currentPage.value = page
   getUserList()
+}
+const handleStatusChange = async (row: UserItem) => {
+  switchingUserId.value = row.id
+
+  try {
+    const result = await reqUpdateUser(row.id, {
+      username: row.username,
+      name: row.name,
+      role: row.role,
+      status: row.status,
+    })
+
+    if (result.code !== 200) {
+      ElMessage.error(result.message || '状态更新失败')
+      row.status = !row.status
+      return
+    }
+
+    ElMessage.success(row.status ? '已启用用户' : '已禁用用户')
+  } catch {
+    row.status = !row.status
+  } finally {
+    switchingUserId.value = null
+  }
+}
+const handleSelectionChange = (rows: UserItem[]) => {
+  selectedRows.value = rows
+}
+const handleBatchDelete = async () => {
+  if (!selectedRows.value.length) {
+    ElMessage.warning('请先选择要删除的用户')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRows.value.length} 个用户吗？`,
+      '批量删除确认',
+      {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+      },
+    )
+  } catch {
+    return
+  }
+
+  batchDeleting.value = true
+
+  try {
+    await Promise.all(selectedRows.value.map((item) => reqDeleteUser(item.id)))
+
+    ElMessage.success('批量删除成功')
+
+    if (selectedRows.value.length === tableData.value.length && currentPage.value > 1) {
+      currentPage.value--
+    }
+
+    selectedRows.value = []
+    getUserList()
+  } finally {
+    batchDeleting.value = false
+  }
 }
 
 onMounted(() => {
@@ -185,23 +269,48 @@ onMounted(() => {
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="handleReset">重置</el-button>
-          <el-button type="success" @click="openAddDialog">新增用户</el-button>
+          <el-button v-has="'user.add'" type="success" @click="openAddDialog"> 新增用户 </el-button>
+          <el-button
+            v-has="'user.batchDelete'"
+            type="danger"
+            :disabled="!selectedRows.length"
+            :loading="batchDeleting"
+            @click="handleBatchDelete"
+          >
+            批量删除
+          </el-button>
         </el-form-item>
       </el-form>
     </section>
 
     <section class="table-section">
-      <el-table v-loading="loading" :data="tableData" border stripe empty-text="暂无匹配用户">
-        <el-table-column prop="id" label="ID" width="80" />
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        border
+        stripe
+        empty-text="暂无匹配用户"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" width="55" />
+        <el-table-column label="序号" width="80">
+          <template #default="{ $index }">
+            {{ (currentPage - 1) * pageSize + $index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column prop="username" label="用户名" min-width="120" />
         <el-table-column prop="name" label="姓名" min-width="120" />
         <el-table-column prop="role" label="角色" min-width="140" />
 
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="120">
           <template #default="{ row }">
-            <el-tag :type="row.status ? 'success' : 'danger'">
-              {{ row.status ? '启用' : '禁用' }}
-            </el-tag>
+            <el-switch
+              v-model="row.status"
+              :loading="switchingUserId === row.id"
+              active-text="启用"
+              inactive-text="禁用"
+              @change="handleStatusChange(row)"
+            />
           </template>
         </el-table-column>
 
@@ -209,8 +318,24 @@ onMounted(() => {
 
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)"> 编辑 </el-button>
-            <el-button link type="danger" @click="handleDelete(row)"> 删除 </el-button>
+            <el-button
+              v-has="'user.update'"
+              link
+              type="primary"
+              :disabled="deletingUserId === row.id"
+              @click="handleEdit(row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-has="'user.delete'"
+              link
+              type="danger"
+              :loading="deletingUserId === row.id"
+              @click="handleDelete(row)"
+            >
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -252,7 +377,7 @@ onMounted(() => {
 
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
   </main>

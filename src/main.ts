@@ -3,6 +3,7 @@ import App from '@/App.vue'
 import svgIconPlugin from '@/plugins/svgIcon'
 import 'element-plus/dist/index.css'
 import '@/styles/index.scss'
+import directives from '@/directives'
 import router from './router'
 import pinia from './store'
 const app = createApp(App)
@@ -10,4 +11,5 @@ const app = createApp(App)
 app.use(svgIconPlugin)
 app.use(router)
 app.use(pinia)
+app.use(directives)
 app.mount('#app')

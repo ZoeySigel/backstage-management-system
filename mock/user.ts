@@ -9,7 +9,7 @@ const userList = [
     token: 'Admin Token',
     avatar: Mock.Random.image('100x100', '#409eff', '#ffffff', 'Admin'),
     roles: ['admin'],
-    buttons: ['cuser.detail'],
+    buttons: ['user.add', 'user.update', 'user.delete', 'user.batchDelete'],
     routes: ['home', 'about', 'acl', 'user', 'role', 'permission', 'product'],
   },
   {
@@ -19,7 +19,7 @@ const userList = [
     token: 'System Token',
     avatar: Mock.Random.image('100x100', '#67c23a', '#ffffff', 'User'),
     roles: ['system'],
-    buttons: ['cuser.detail'],
+    buttons: ['user.update'],
     routes: ['home', 'about', 'user'],
   },
 ]
