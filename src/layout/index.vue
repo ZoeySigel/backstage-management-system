@@ -2,7 +2,15 @@
 import { computed } from 'vue'
 import type { Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowDown, Fold, House, SwitchButton, User } from '@element-plus/icons-vue'
+import {
+  ArrowDown,
+  Fold,
+  House,
+  SwitchButton,
+  User,
+  UserFilled,
+  Lock,
+} from '@element-plus/icons-vue'
 import useUserStore from '@/store/modules/user'
 import { constantRoute } from '@/router/routes'
 
@@ -13,6 +21,8 @@ const userStore = useUserStore()
 const iconMap: Record<string, Component> = {
   House,
   User,
+  UserFilled,
+  Lock,
 }
 
 type MenuMeta = {

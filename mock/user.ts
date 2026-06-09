@@ -1,26 +1,32 @@
 import type { MockMethod } from 'vite-plugin-mock'
 import Mock from 'mockjs'
+import { rolePermissions } from './data/permission'
+const getUserPermissions = (roleId: number) => {
+  const permissions = rolePermissions[roleId] || []
 
+  return {
+    routes: permissions.filter((permission) => !permission.includes('.')),
+    buttons: permissions.filter((permission) => permission.includes('.')),
+  }
+}
 const userList = [
   {
     userId: 1,
     username: 'admin',
     password: '111111',
     token: 'Admin Token',
+    roleId: 1,
+    roles: ['超级管理员'],
     avatar: Mock.Random.image('100x100', '#409eff', '#ffffff', 'Admin'),
-    roles: ['admin'],
-    buttons: ['user.add', 'user.update', 'user.delete', 'user.batchDelete'],
-    routes: ['home', 'about', 'acl', 'user', 'role', 'permission', 'product'],
   },
   {
     userId: 2,
     username: 'system',
     password: '111111',
     token: 'System Token',
+    roleId: 2,
+    roles: ['系统管理员'],
     avatar: Mock.Random.image('100x100', '#67c23a', '#ffffff', 'User'),
-    roles: ['system'],
-    buttons: ['user.update'],
-    routes: ['home', 'about', 'user'],
   },
 ]
 
@@ -65,6 +71,8 @@ export default [
         }
       }
 
+      const permissions = getUserPermissions(user.roleId)
+
       return {
         code: 200,
         data: {
@@ -72,8 +80,8 @@ export default [
           username: user.username,
           avatar: user.avatar,
           roles: user.roles,
-          buttons: user.buttons,
-          routes: user.routes,
+          routes: permissions.routes,
+          buttons: permissions.buttons,
         },
         message: 'success',
       }

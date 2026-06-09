@@ -40,6 +40,24 @@ export const constantRoute = [
           icon: 'User',
         },
       },
+      {
+        path: '/role',
+        component: () => import('@/views/role/index.vue'),
+        name: 'role',
+        meta: {
+          title: '角色管理',
+          icon: 'UserFilled',
+        },
+      },
+      {
+        path: '/permission',
+        component: () => import('@/views/permission/index.vue'),
+        name: 'permission',
+        meta: {
+          title: '权限管理',
+          icon: 'Lock',
+        },
+      },
     ],
   },
   {
