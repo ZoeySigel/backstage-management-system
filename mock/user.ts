@@ -1,6 +1,8 @@
 import type { MockMethod } from 'vite-plugin-mock'
-import Mock from 'mockjs'
 import { rolePermissions } from './data/permission'
+import { roleList } from './data/role'
+import { userList } from './data/user'
+
 const getUserPermissions = (roleId: number) => {
   const permissions = rolePermissions[roleId] || []
 
@@ -9,26 +11,6 @@ const getUserPermissions = (roleId: number) => {
     buttons: permissions.filter((permission) => permission.includes('.')),
   }
 }
-const userList = [
-  {
-    userId: 1,
-    username: 'admin',
-    password: '111111',
-    token: 'Admin Token',
-    roleId: 1,
-    roles: ['超级管理员'],
-    avatar: Mock.Random.image('100x100', '#409eff', '#ffffff', 'Admin'),
-  },
-  {
-    userId: 2,
-    username: 'system',
-    password: '111111',
-    token: 'System Token',
-    roleId: 2,
-    roles: ['系统管理员'],
-    avatar: Mock.Random.image('100x100', '#67c23a', '#ffffff', 'User'),
-  },
-]
 
 export default [
   {
@@ -39,7 +21,7 @@ export default [
         (item) => item.username === body.username && item.password === body.password,
       )
 
-      if (!user) {
+      if (!user || !user.status) {
         return {
           code: 201,
           data: null,
@@ -60,8 +42,7 @@ export default [
     url: '/api/user/info',
     method: 'get',
     response: ({ headers }) => {
-      const token = headers.token
-      const user = userList.find((item) => item.token === token)
+      const user = userList.find((item) => item.token === headers.token)
 
       if (!user) {
         return {
@@ -72,6 +53,7 @@ export default [
       }
 
       const permissions = getUserPermissions(user.roleId)
+      const role = roleList.find((item) => item.id === user.roleId)
 
       return {
         code: 200,
@@ -79,7 +61,7 @@ export default [
           userId: user.userId,
           username: user.username,
           avatar: user.avatar,
-          roles: user.roles,
+          roles: role ? [role.roleName] : [],
           routes: permissions.routes,
           buttons: permissions.buttons,
         },

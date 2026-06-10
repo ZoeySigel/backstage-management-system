@@ -1,6 +1,17 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { constantRoute } from './routes'
 import useUserStore from '@/store/modules/user'
+
+const publicRouteNames = new Set(['login', '404', 'Any'])
+
+const hasRoutePermission = (routeName: unknown, routes: string[]) => {
+  if (!routeName || publicRouteNames.has(String(routeName))) {
+    return true
+  }
+
+  return routes.includes(String(routeName))
+}
+
 const router = createRouter({
   history: createWebHashHistory(),
   routes: constantRoute,
@@ -28,6 +39,10 @@ router.beforeEach(async (to) => {
         userStore.resetUser()
         return `/login?redirect=${to.fullPath}`
       }
+    }
+
+    if (!hasRoutePermission(to.name, userStore.routes)) {
+      return '/404'
     }
 
     return true

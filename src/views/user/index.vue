@@ -2,8 +2,15 @@
 import { reactive, ref, computed, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { UserForm, UserItem } from '@/api/acl/user/type'
-import { reqAddUser, reqDeleteUser, reqUpdateUser, reqUserList } from '@/api/acl/user'
+import type { RoleOption, UserForm, UserItem } from '@/api/acl/user/type'
+import {
+  reqAddUser,
+  reqAssignUserRole,
+  reqDeleteUser,
+  reqUpdateUser,
+  reqUserList,
+  reqUserRole,
+} from '@/api/acl/user'
 
 const searchForm = reactive({
   keyword: '',
@@ -28,6 +35,11 @@ const batchDeleting = ref(false)
 
 const deletingUserId = ref<number | null>(null)
 const switchingUserId = ref<number | null>(null)
+const roleDialogVisible = ref(false)
+const roleLoading = ref(false)
+const assigningUser = ref<UserItem | null>(null)
+const roleOptions = ref<RoleOption[]>([])
+const selectedRoleId = ref<number | null>(null)
 
 const userForm = reactive<UserForm>({
   username: '',
@@ -253,6 +265,52 @@ const handleBatchDelete = async () => {
   }
 }
 
+const handleAssignRole = async (row: UserItem) => {
+  assigningUser.value = row
+  roleDialogVisible.value = true
+  roleLoading.value = true
+
+  try {
+    const result = await reqUserRole(row.id)
+
+    if (result.code !== 200) {
+      ElMessage.error(result.message || '获取用户角色失败')
+      return
+    }
+
+    roleOptions.value = result.data.roles
+    selectedRoleId.value = result.data.roleId
+  } finally {
+    roleLoading.value = false
+  }
+}
+
+const handleSaveRole = async () => {
+  if (!assigningUser.value || selectedRoleId.value === null) {
+    ElMessage.warning('请选择角色')
+    return
+  }
+
+  roleLoading.value = true
+
+  try {
+    const result = await reqAssignUserRole(assigningUser.value.id, {
+      roleId: selectedRoleId.value,
+    })
+
+    if (result.code !== 200) {
+      ElMessage.error(result.message || '分配角色失败')
+      return
+    }
+
+    ElMessage.success('分配角色成功')
+    roleDialogVisible.value = false
+    getUserList()
+  } finally {
+    roleLoading.value = false
+  }
+}
+
 onMounted(() => {
   getUserList()
 })
@@ -316,7 +374,7 @@ onMounted(() => {
 
         <el-table-column prop="createTime" label="创建时间" min-width="180" />
 
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <el-button
               v-has="'user.update'"
@@ -326,6 +384,15 @@ onMounted(() => {
               @click="handleEdit(row)"
             >
               编辑
+            </el-button>
+            <el-button
+              v-has="'user.assignRole'"
+              link
+              type="warning"
+              :disabled="deletingUserId === row.id"
+              @click="handleAssignRole(row)"
+            >
+              分配角色
             </el-button>
             <el-button
               v-has="'user.delete'"
@@ -378,6 +445,30 @@ onMounted(() => {
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确定</el-button>
+      </template>
+    </el-dialog>
+    <el-dialog
+      v-model="roleDialogVisible"
+      :title="`分配角色：${assigningUser?.username || ''}`"
+      width="460px"
+      align-center
+    >
+      <el-form v-loading="roleLoading" label-width="80px">
+        <el-form-item label="角色">
+          <el-select v-model="selectedRoleId" placeholder="请选择角色" style="width: 100%">
+            <el-option
+              v-for="role in roleOptions"
+              :key="role.id"
+              :label="role.roleName"
+              :value="role.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="roleDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="roleLoading" @click="handleSaveRole">保存</el-button>
       </template>
     </el-dialog>
   </main>

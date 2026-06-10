@@ -10,6 +10,8 @@ import {
   User,
   UserFilled,
   Lock,
+  Goods,
+  SetUp,
 } from '@element-plus/icons-vue'
 import useUserStore from '@/store/modules/user'
 import { constantRoute } from '@/router/routes'
@@ -23,6 +25,8 @@ const iconMap: Record<string, Component> = {
   User,
   UserFilled,
   Lock,
+  Goods,
+  SetUp,
 }
 
 type MenuMeta = {
@@ -37,7 +41,7 @@ const menuList = computed(() => {
 
   return children
     .filter((item) => !(item.meta as MenuMeta | undefined)?.hidden)
-    .filter((item) => !userStore.routes.length || userStore.routes.includes(String(item.name)))
+    .filter((item) => userStore.routes.includes(String(item.name)))
     .map((item) => {
       const meta = item.meta as MenuMeta | undefined
 

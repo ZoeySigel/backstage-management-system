@@ -58,6 +58,24 @@ export const constantRoute = [
           icon: 'Lock',
         },
       },
+      {
+        path: '/brand',
+        component: () => import('@/views/brand/index.vue'),
+        name: 'brand',
+        meta: {
+          title: '品牌管理',
+          icon: 'Goods',
+        },
+      },
+      {
+        path: '/attr',
+        component: () => import('@/views/attr/index.vue'),
+        name: 'attr',
+        meta: {
+          title: '平台属性',
+          icon: 'SetUp',
+        },
+      },
     ],
   },
   {

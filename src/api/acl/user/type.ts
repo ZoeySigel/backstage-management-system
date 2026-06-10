@@ -31,5 +31,20 @@ export interface UserResponseData<T = null> {
   message: string
 }
 
+export interface RoleOption {
+  id: number
+  roleName: string
+}
+
+export interface UserRoleData {
+  roles: RoleOption[]
+  roleId: number
+}
+
+export interface AssignUserRoleForm {
+  roleId: number
+}
+
 export type UserListResponseData = UserResponseData<UserListData>
 export type UserActionResponseData = UserResponseData<null>
+export type UserRoleResponseData = UserResponseData<UserRoleData>
