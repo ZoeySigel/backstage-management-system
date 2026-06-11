@@ -46,9 +46,9 @@ export default [
 
       if (!user) {
         return {
-          code: 201,
+          code: 401,
           data: null,
-          message: 'Invalid token',
+          message: '登录状态已过期，请重新登录',
         }
       }
 

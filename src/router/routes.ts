@@ -76,6 +76,42 @@ export const constantRoute = [
           icon: 'SetUp',
         },
       },
+      {
+        path: '/spu',
+        component: () => import('@/views/spu/index.vue'),
+        name: 'spu',
+        meta: {
+          title: 'SPU 管理',
+          icon: 'ShoppingCart',
+        },
+      },
+      {
+        path: '/sku',
+        component: () => import('@/views/sku/index.vue'),
+        name: 'sku',
+        meta: {
+          title: 'SKU 管理',
+          icon: 'Box',
+        },
+      },
+      {
+        path: '/order',
+        component: () => import('@/views/order/index.vue'),
+        name: 'order',
+        meta: {
+          title: '订单管理',
+          icon: 'Tickets',
+        },
+      },
+      {
+        path: '/operation-log',
+        component: () => import('@/views/operationLog/index.vue'),
+        name: 'operationLog',
+        meta: {
+          title: '操作日志',
+          icon: 'Document',
+        },
+      },
     ],
   },
   {
