@@ -1,8 +1,6 @@
 # Backstage Management System
 
-基于 Vue 3、TypeScript、Vite 和 Element Plus 开发的电商后台管理系统。
-
-项目包含权限、商品、订单、数据看板和操作日志等常见后台功能。当前接口由 Node.js API 服务提供，可以直接运行和体验。
+基于 Vue 3、TypeScript、Vite 和 Element Plus 开发的电商后台管理系统。项目已移除原 `mock/` 模拟接口，改为使用 Node.js 原生 HTTP 服务提供真实 API，并通过本地 JSON 数据文件进行持久化读写。
 
 ## 功能
 
@@ -11,7 +9,7 @@
 - 菜单权限与按钮权限控制
 - 品牌、平台属性、SPU 和 SKU 管理
 - 商品图片上传、库存和上下架管理
-- 订单查询、详情和状态流转
+- 订单查询、详情和状态流转校验
 - 首页数据看板
 - 操作日志查询
 - 侧边栏折叠、面包屑和多页签导航
@@ -27,10 +25,22 @@
 - Element Plus
 - Axios
 - ECharts
-- Node.js
+- Node.js 原生 HTTP API
 - Sass
 - ESLint、Stylelint、Prettier
 - Husky、lint-staged、Commitlint
+
+## 后端说明
+
+后端入口位于 `server/index.cjs`，不依赖 Express、Prisma、Mock.js 或 vite-plugin-mock。
+
+服务启动后会自动生成数据文件：
+
+```text
+server/data/database.json
+```
+
+该文件用于保存用户、角色、权限、商品、订单和操作日志等数据。页面中的新增、编辑、删除、分配权限和订单状态流转都会写入该文件。若需要重置数据，停止服务后删除 `server/data/database.json`，再次启动会自动恢复初始数据。
 
 ## 运行项目
 
@@ -45,7 +55,7 @@
 pnpm install
 ```
 
-### 启动开发服务器
+### 启动开发服务
 
 ```bash
 pnpm run dev
@@ -95,30 +105,20 @@ pnpm run lint
 ## 项目结构
 
 ```text
-├─ mock/             # 接口路由和内存数据
-├─ public/           # 静态资源
-├─ scripts/          # 开发辅助脚本
-├─ server/           # Node.js API 服务
-├─ src/
-│  ├─ api/           # API 请求与类型
-│  ├─ components/    # 公共组件
-│  ├─ directives/    # 自定义指令
-│  ├─ layout/        # 后台布局
-│  ├─ router/        # 路由配置
-│  ├─ store/         # Pinia 状态管理
-│  ├─ styles/        # 全局样式
-│  ├─ utils/         # 工具函数
-│  └─ views/         # 页面
-└─ package.json
+public/           # 静态资源
+scripts/          # 开发辅助脚本
+server/           # Node.js API 服务
+src/
+  api/            # 前端 API 请求与类型
+  components/     # 公共组件
+  directives/     # 自定义指令
+  layout/         # 后台布局
+  router/         # 路由配置
+  store/          # Pinia 状态管理
+  styles/         # 全局样式
+  utils/          # 工具函数
+  views/          # 页面
 ```
-
-## 数据说明
-
-项目使用 Node.js 服务提供后端接口，接口路由和内存数据位于 `mock/` 目录，由 `server/index.cjs` 加载并注册。
-
-首页图表由 ECharts 绘制，图表数据位于 `mock/dashboard.ts`。
-
-接口数据保存在 Node.js 服务内存中，重启 API 服务后会恢复为初始数据。
 
 ## License
 
