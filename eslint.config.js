@@ -12,12 +12,29 @@ export default tseslint.config(
   ...vue.configs['flat/recommended'],
   prettier,
   {
-    files: ['**/*.cjs'],
+    files: ['**/*.{js,cjs,mjs}'],
     languageOptions: {
       globals: {
+        console: 'readonly',
+        process: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        URL: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        __dirname: 'readonly',
         module: 'readonly',
         require: 'readonly',
       },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {

@@ -10,7 +10,9 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev": "vite --open",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite --open",
+    "dev:api": "node server/index.cjs",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "lint": "pnpm run lint:eslint && pnpm run lint:stylelint && pnpm run lint:format",

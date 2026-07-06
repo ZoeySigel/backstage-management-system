@@ -2,7 +2,7 @@
 
 基于 Vue 3、TypeScript、Vite 和 Element Plus 开发的电商后台管理系统。
 
-项目包含权限、商品、订单、数据看板和操作日志等常见后台功能。当前接口由 Mock 提供，可以直接运行和体验。
+项目包含权限、商品、订单、数据看板和操作日志等常见后台功能。当前接口由 Node.js API 服务提供，可以直接运行和体验。
 
 ## 功能
 
@@ -27,7 +27,7 @@
 - Element Plus
 - Axios
 - ECharts
-- vite-plugin-mock
+- Node.js
 - Sass
 - ESLint、Stylelint、Prettier
 - Husky、lint-staged、Commitlint
@@ -51,10 +51,25 @@ pnpm install
 pnpm run dev
 ```
 
+该命令会同时启动 Node.js API 服务和 Vite 前端服务。
+
 默认访问地址：
 
 ```text
 http://localhost:5173
+```
+
+API 服务默认地址：
+
+```text
+http://127.0.0.1:3000
+```
+
+也可以分别启动：
+
+```bash
+pnpm run dev:api
+pnpm run dev:web
 ```
 
 ### 构建项目
@@ -80,8 +95,10 @@ pnpm run lint
 ## 项目结构
 
 ```text
-├─ mock/             # Mock 接口和数据
+├─ mock/             # 接口路由和内存数据
 ├─ public/           # 静态资源
+├─ scripts/          # 开发辅助脚本
+├─ server/           # Node.js API 服务
 ├─ src/
 │  ├─ api/           # API 请求与类型
 │  ├─ components/    # 公共组件
@@ -97,11 +114,11 @@ pnpm run lint
 
 ## 数据说明
 
-项目使用 `vite-plugin-mock` 模拟后端接口，Mock 文件位于 `mock/` 目录。
+项目使用 Node.js 服务提供后端接口，接口路由和内存数据位于 `mock/` 目录，由 `server/index.cjs` 加载并注册。
 
 首页图表由 ECharts 绘制，图表数据位于 `mock/dashboard.ts`。
 
-Mock 数据保存在开发服务器内存中，重启开发服务器后会恢复为初始数据。
+接口数据保存在 Node.js 服务内存中，重启 API 服务后会恢复为初始数据。
 
 ## License
 
